@@ -47,16 +47,16 @@ O Bestcell adota uma **arquitetura em camadas**, com separação clara de respon
 
 ### Visão Geral
 
-Interface (Streamlit)
-│
-▼
-Camada de View
-│
-▼
-Camada de Negócio
-│
-▼
-Camada de Persistência (SQLite)
+    Interface (Streamlit)
+    │
+    ▼
+    Camada de View
+    │
+    ▼
+    Camada de Negócio
+    │
+    ▼
+    Camada de Persistência (SQLite)
 
 ### Camadas do Sistema
 
@@ -141,18 +141,18 @@ O sistema oferece relatórios financeiros consolidados por período.
 
 ### Estrutura de Diretórios
 
-Workspace/
-│
-├── .venv/
-├── run_bestsystem.bat
-└── BestSystem/
-├── bestsystem.py
-├── database.py
-├── utils.py
-├── view.py
-├── bestsystem.db
-└── assets/
-└── logo.png
+    Workspace/
+        │    
+        ├── .venv/    
+        ├── run_bestsystem.bat    
+        └── BestSystem/    
+            ├── bestsystem.py      
+            ├── database.py      
+            ├── utils.py      
+            ├── view.py      
+            ├── bestsystem.db      
+            └── assets/      
+                └── logo.png
 
 ### Inicialização
 
