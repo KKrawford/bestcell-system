@@ -112,6 +112,36 @@ O fluxo de negócio representa o ciclo completo de uma venda.
 - Consolidação de inadimplência
 - Encerramento administrativo
 
+## 📸 Visão Geral do Sistema (Screenshots)
+
+### 🧾 Cadastro de Vendas
+![Cadastro de Venda](docs/images/1-CadastroVenda.png)
+
+---
+
+### 📋 Vendas Ativas
+![Vendas Ativas](docs/images/2-VendasAtivas.png)
+
+---
+
+### 💳 Controle de Parcelas
+![Visualização de Parcelas](docs/images/3-ViewParcelas.png)
+
+---
+
+### ✏️ Ajustes de Parcelas
+![Ajustes de Parcelas](docs/images/4-AjustesParcelas.png)
+
+---
+
+### 📊 Relatórios – Resumo Mensal
+![Resumo Mensal](docs/images/5-ResumoMensal.png)
+
+---
+
+### 📈 Análise Detalhada (Drill-down)
+![Análise Detalhada (Drill-down)](docs/images/6-DrillDown.png)
+
 ---
 
 ## 6. Relatórios
