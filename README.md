@@ -171,26 +171,34 @@ O sistema oferece relatórios financeiros consolidados por período.
 
 ### Estrutura de Diretórios
 
-    Workspace/
-        │    
-        ├── .venv/    
-        ├── run_bestsystem.bat    
-        └── BestSystem/    
-            ├── bestsystem.py      
-            ├── database.py      
-            ├── utils.py      
-            ├── view.py      
-            ├── bestsystem.db      
-            └── assets/      
-                └── logo.png
+    bestcell-system/
+    │
+    ├── local/          # versão atual (local)
+    │   ├── bestsystem.py
+    │   ├── database.py
+    │   ├── utils.py
+    │   ├── view.py
+    │   └── assets/
+    │
+    ├── vps/            # reservado para versão VPS (ainda não adicionada)
+    │   ├── bestsystem.py
+    │   ├── auth.py
+    │   ├── database.py
+    │   ├── utils.py
+    │   ├── view.py
+    │   └── assets/
+    │
+    ├── runtime/        # não versionado
+    ├── run.sh          # execução na VPS
+    └── requirements.txt
 
 ### Inicialização
 
-Execute com duplo clique:
-run_bestsystem.bat
+Para desenvolvimento local:
+streamlit run local/bestsystem.py
 
-Ou manualmente:
-streamlit run BestSystem\bestsystem.py
+Para execução na VPS (quando os arquivos estiverem adicionados):
+./run.sh
 
 O sistema será acessado em:
 http://localhost:8501

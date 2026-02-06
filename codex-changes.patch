@@ -1,0 +1,242 @@
+From 8a819ac566c8f7ebab1d785a17c18efb69c9a3ce Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Fri, 6 Feb 2026 17:17:12 +0000
+Subject: [PATCH] =?UTF-8?q?Organiza=20reposit=C3=B3rio:=20move=20vers?=
+ =?UTF-8?q?=C3=A3o=20local=20para=20`local/`=20e=20adiciona=20placeholders?=
+ =?UTF-8?q?=20em=20`vps/`?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+### Motivation
+- Separar claramente a versão de desenvolvimento (local) da versão de produção (VPS) para evitar mistura e duplicação de código.
+- Indicar que a versão VPS ainda não foi enviada ao repositório e evitar execução acidental usando arquivos incompletos.
+
+### Description
+- Movi os arquivos da versão existente para o pacote `local/` e adicionei `local/__init__.py` para permitir importações como `local.*`.
+- Substituí os módulos em `vps/` por placeholders (`vps/bestsystem.py`, `vps/auth.py`, `vps/database.py`, `vps/utils.py`, `vps/view.py`) que abortam com mensagem clara quando executados.
+- Removi o `vps/assets/logo.png` duplicado e mantive `vps/assets/.gitkeep` para preservar o diretório na árvore do git.
+- Adicionei `run.sh` que falha com mensagem informativa enquanto a versão VPS não estiver presente e atualizei o `README.md` para documentar a nova estrutura de diretórios e o fluxo de execução local (`streamlit run local/bestsystem.py`).
+
+### Testing
+- Executei `python -m py_compile vps/*.py` para validar a sintaxe dos placeholders e não foram reportados erros.
+---
+ .gitignore                            |   3 ++
+ README.md                             |  40 +++++++++++++++-----------
+ local/__init__.py                     |   1 +
+ {BestSystem => local}/assets/logo.png | Bin
+ {BestSystem => local}/bestsystem.py   |   0
+ {BestSystem => local}/database.py     |   0
+ {BestSystem => local}/utils.py        |   0
+ {BestSystem => local}/view.py         |   0
+ run.sh                                |   6 ++++
+ vps/assets/.gitkeep                   |   1 +
+ vps/auth.py                           |   9 ++++++
+ vps/bestsystem.py                     |   9 ++++++
+ vps/database.py                       |   9 ++++++
+ vps/utils.py                          |   9 ++++++
+ vps/view.py                           |   9 ++++++
+ 15 files changed, 80 insertions(+), 16 deletions(-)
+ create mode 100644 local/__init__.py
+ rename {BestSystem => local}/assets/logo.png (100%)
+ rename {BestSystem => local}/bestsystem.py (100%)
+ rename {BestSystem => local}/database.py (100%)
+ rename {BestSystem => local}/utils.py (100%)
+ rename {BestSystem => local}/view.py (100%)
+ create mode 100755 run.sh
+ create mode 100644 vps/assets/.gitkeep
+ create mode 100644 vps/auth.py
+ create mode 100644 vps/bestsystem.py
+ create mode 100644 vps/database.py
+ create mode 100644 vps/utils.py
+ create mode 100644 vps/view.py
+
+diff --git a/.gitignore b/.gitignore
+index 48c948b..72a7fb2 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -15,3 +15,6 @@ __pycache__/
+ # Sistema operacional
+ .DS_Store
+ Thumbs.db
++
++# Runtime (somente execução)
++runtime/
+diff --git a/README.md b/README.md
+index 5014c9a..8a778cc 100644
+--- a/README.md
++++ b/README.md
+@@ -171,26 +171,34 @@ O sistema oferece relatórios financeiros consolidados por período.
+ 
+ ### Estrutura de Diretórios
+ 
+-    Workspace/
+-        │    
+-        ├── .venv/    
+-        ├── run_bestsystem.bat    
+-        └── BestSystem/    
+-            ├── bestsystem.py      
+-            ├── database.py      
+-            ├── utils.py      
+-            ├── view.py      
+-            ├── bestsystem.db      
+-            └── assets/      
+-                └── logo.png
++    bestcell-system/
++    │
++    ├── local/          # versão atual (local)
++    │   ├── bestsystem.py
++    │   ├── database.py
++    │   ├── utils.py
++    │   ├── view.py
++    │   └── assets/
++    │
++    ├── vps/            # reservado para versão VPS (ainda não adicionada)
++    │   ├── bestsystem.py
++    │   ├── auth.py
++    │   ├── database.py
++    │   ├── utils.py
++    │   ├── view.py
++    │   └── assets/
++    │
++    ├── runtime/        # não versionado
++    ├── run.sh          # execução na VPS
++    └── requirements.txt
+ 
+ ### Inicialização
+ 
+-Execute com duplo clique:
+-run_bestsystem.bat
++Para desenvolvimento local:
++streamlit run local/bestsystem.py
+ 
+-Ou manualmente:
+-streamlit run BestSystem\bestsystem.py
++Para execução na VPS (quando os arquivos estiverem adicionados):
++./run.sh
+ 
+ O sistema será acessado em:
+ http://localhost:8501
+diff --git a/local/__init__.py b/local/__init__.py
+new file mode 100644
+index 0000000..4f25b71
+--- /dev/null
++++ b/local/__init__.py
+@@ -0,0 +1 @@
++"""Pacote da versão local do Bestcell."""
+diff --git a/BestSystem/assets/logo.png b/local/assets/logo.png
+similarity index 100%
+rename from BestSystem/assets/logo.png
+rename to local/assets/logo.png
+diff --git a/BestSystem/bestsystem.py b/local/bestsystem.py
+similarity index 100%
+rename from BestSystem/bestsystem.py
+rename to local/bestsystem.py
+diff --git a/BestSystem/database.py b/local/database.py
+similarity index 100%
+rename from BestSystem/database.py
+rename to local/database.py
+diff --git a/BestSystem/utils.py b/local/utils.py
+similarity index 100%
+rename from BestSystem/utils.py
+rename to local/utils.py
+diff --git a/BestSystem/view.py b/local/view.py
+similarity index 100%
+rename from BestSystem/view.py
+rename to local/view.py
+diff --git a/run.sh b/run.sh
+new file mode 100755
+index 0000000..51209a5
+--- /dev/null
++++ b/run.sh
+@@ -0,0 +1,6 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++echo "Versão VPS ainda não disponível no repositório." >&2
++echo "Adicione os arquivos da VPS em ./vps para habilitar a execução." >&2
++exit 1
+diff --git a/vps/assets/.gitkeep b/vps/assets/.gitkeep
+new file mode 100644
+index 0000000..0d1f141
+--- /dev/null
++++ b/vps/assets/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder para manter o diretório assets na versão VPS.
+diff --git a/vps/auth.py b/vps/auth.py
+new file mode 100644
+index 0000000..ba15b68
+--- /dev/null
++++ b/vps/auth.py
+@@ -0,0 +1,9 @@
++"""Placeholder da camada de autenticação para VPS.
++
++Os arquivos da versão VPS ainda não foram adicionados ao repositório.
++"""
++
++raise SystemExit(
++    "Versão VPS ainda não disponível no repositório. "
++    "Adicione os arquivos específicos da VPS nesta pasta."
++)
+diff --git a/vps/bestsystem.py b/vps/bestsystem.py
+new file mode 100644
+index 0000000..060a329
+--- /dev/null
++++ b/vps/bestsystem.py
+@@ -0,0 +1,9 @@
++"""Entrypoint placeholder da versão VPS do Bestcell.
++
++Os arquivos da versão VPS ainda não foram adicionados ao repositório.
++"""
++
++raise SystemExit(
++    "Versão VPS ainda não disponível no repositório. "
++    "Adicione os arquivos específicos da VPS nesta pasta."
++)
+diff --git a/vps/database.py b/vps/database.py
+new file mode 100644
+index 0000000..ef741fd
+--- /dev/null
++++ b/vps/database.py
+@@ -0,0 +1,9 @@
++"""Placeholder da camada de dados para VPS.
++
++Os arquivos da versão VPS ainda não foram adicionados ao repositório.
++"""
++
++raise SystemExit(
++    "Versão VPS ainda não disponível no repositório. "
++    "Adicione os arquivos específicos da VPS nesta pasta."
++)
+diff --git a/vps/utils.py b/vps/utils.py
+new file mode 100644
+index 0000000..5f2340b
+--- /dev/null
++++ b/vps/utils.py
+@@ -0,0 +1,9 @@
++"""Placeholder da camada utilitária para VPS.
++
++Os arquivos da versão VPS ainda não foram adicionados ao repositório.
++"""
++
++raise SystemExit(
++    "Versão VPS ainda não disponível no repositório. "
++    "Adicione os arquivos específicos da VPS nesta pasta."
++)
+diff --git a/vps/view.py b/vps/view.py
+new file mode 100644
+index 0000000..b1b6221
+--- /dev/null
++++ b/vps/view.py
+@@ -0,0 +1,9 @@
++"""Placeholder da camada de visualização para VPS.
++
++Os arquivos da versão VPS ainda não foram adicionados ao repositório.
++"""
++
++raise SystemExit(
++    "Versão VPS ainda não disponível no repositório. "
++    "Adicione os arquivos específicos da VPS nesta pasta."
++)
+-- 
+2.43.0
