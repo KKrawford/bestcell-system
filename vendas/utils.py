@@ -2,16 +2,15 @@ import pandas as pd
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 
-from database import (
+from .database import (
     fetch_parcels,
     fetch_parcel_adjustments,
     fetch_all_parcel_adjustments,
     fetch_sales,
-    fetch_sales_archive
+    fetch_sales_archive,    
 )
 
 DAILY_FINE = 3.90
-
 
 # ================= DATAS =================
 
@@ -59,6 +58,34 @@ def normalize_datetime(value) -> datetime | None:
 
 def add_months_safe(orig_date, months):
     return orig_date + relativedelta(months=months)
+
+
+def calculate_due_dates(base_date, frequency, num_installments):
+    """
+    Calcula as datas de vencimento com base na frequência
+    base_date: data da venda (date object)
+    frequency: 'Mensal', 'Quinzenal', 'Semanal'
+    num_installments: número de parcelas (excluindo entrada)
+    """
+    due_dates = []
+    
+    if frequency == 'Mensal':
+        for i in range(1, num_installments + 1):
+            due_date = add_months_safe(base_date, i)
+            due_dates.append(due_date)
+    
+    elif frequency == 'Quinzenal':
+        for i in range(1, num_installments + 1):
+            # Calcula quinzenas a partir da data da venda
+            due_date = base_date + relativedelta(days=15 * i)
+            due_dates.append(due_date)
+    
+    elif frequency == 'Semanal':
+        for i in range(1, num_installments + 1):
+            due_date = base_date + relativedelta(weeks=i)
+            due_dates.append(due_date)
+    
+    return due_dates
 
 # ================= PARCELAS =================
 def parcel_financial_summary(parcel_id, valor_original, vencimento):
@@ -116,7 +143,6 @@ def parcel_financial_summary(parcel_id, valor_original, vencimento):
         "status": status,
     }
 
-
 def sale_is_fully_paid(sale_id: str) -> bool:
     parcels = fetch_parcels()
 
@@ -134,7 +160,6 @@ def sale_is_fully_paid(sale_id: str) -> bool:
             return False
 
     return True
-
 
 # ================= SAÚDE DO SISTEMA =================
 
@@ -160,6 +185,7 @@ def system_health_summary():
 
     saldo_aberto = 0.0
     em_atraso = 0.0
+    recebivel_futuro = 0.0
 
     for p in parcels:
         resumo = parcel_financial_summary(
@@ -169,15 +195,24 @@ def system_health_summary():
         )
 
         saldo = resumo["saldo"]
+        vencimento = normalize_date(p["vencimento"])
+
         if saldo > 0:
+            # Exposição total atual
             saldo_aberto += saldo
 
-            if normalize_date(p["vencimento"]) < hoje:
+            # Parte vencida
+            if vencimento < hoje:
                 em_atraso += saldo
+            else:
+                # Parte futura
+                recebivel_futuro += saldo
 
     return {
         "total_vendido": round(total_vendido, 2),
         "total_recebido": round(total_recebido, 2),
         "saldo_aberto": round(saldo_aberto, 2),
         "em_atraso": round(em_atraso, 2),
+        "recebivel_futuro": round(recebivel_futuro, 2),
     }
+

@@ -12,6 +12,14 @@ def currency(v):
         return v
 
 # ======================================================
+# ESCONDER VALORES (VIEW)
+# ======================================================    
+def hide_value(value, visible: bool):
+    if visible:
+        return value
+    return "R$ ••••••"
+
+# ======================================================
 # FORMATAÇÃO DE DATAS (UTC → LOCAL)
 # ======================================================
 def fmt_date(value, with_time=False):

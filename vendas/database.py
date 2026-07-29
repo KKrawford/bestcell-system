@@ -1,8 +1,6 @@
 import sqlite3
-from pathlib import Path
+from config import DB_PATH
 from datetime import datetime
-
-DB_PATH = Path(__file__).parent / "bestsystem.db"
 
 # ---------------- CONNECTION ----------------
 def get_connection():
@@ -27,6 +25,7 @@ def init_db():
             tipo_venda TEXT NOT NULL,
             valor_total REAL NOT NULL,
             data_venda TEXT NOT NULL,
+            frequencia_pagamento TEXT NOT NULL DEFAULT 'Mensal',
             created_at TEXT NOT NULL
         );
         """
@@ -73,6 +72,7 @@ def init_db():
             tipo_venda TEXT NOT NULL,
             valor_total REAL NOT NULL,
             data_venda TEXT NOT NULL,
+            frequencia_pagamento TEXT NOT NULL DEFAULT 'Mensal',
             created_at TEXT NOT NULL,
             archived_at TEXT NOT NULL
         );
@@ -90,8 +90,10 @@ def init_db():
             valor_total REAL NOT NULL,
             valor_recebido REAL NOT NULL,
             valor_perdido REAL NOT NULL,
+            valor_recuperado REAL NOT NULL DEFAULT 0,
 
             data_venda TEXT NOT NULL,
+            frequencia_pagamento TEXT NOT NULL DEFAULT 'Mensal',
             created_at TEXT NOT NULL,
             closed_at TEXT NOT NULL,
 
@@ -99,8 +101,25 @@ def init_db():
         );
         """
     )
+
+    ensure_sales_closed_columns(cur)
+    
     conn.commit()
     conn.close()
+
+# ---------------- MIGRATIONS ----------------
+def ensure_sales_closed_columns(cur):
+    cur.execute("PRAGMA table_info(sales_closed)")
+    columns = [col[1] for col in cur.fetchall()]
+
+    if "valor_recuperado" not in columns:
+        cur.execute(
+            """
+            ALTER TABLE sales_closed
+            ADD COLUMN valor_recuperado REAL NOT NULL DEFAULT 0
+            """
+        )
+
 
 # ---------------- INSERTS ----------------
 def insert_sale(sale: dict):
@@ -121,9 +140,10 @@ def insert_sale(sale: dict):
             tipo_venda,
             valor_total,
             data_venda,
+            frequencia_pagamento,
             created_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sale["id"],
@@ -133,6 +153,7 @@ def insert_sale(sale: dict):
             sale["tipo_venda"],
             sale["valor_total"],
             data_venda,   # 🔹 STRING YYYY-MM-DD
+            sale["frequencia_pagamento"],
             created_at,
         )
     )
@@ -295,7 +316,9 @@ def fetch_closed_sales():
             valor_total,
             valor_recebido,
             valor_perdido,
+            valor_recuperado,
             data_venda,
+            frequencia_pagamento,
             closed_at,
             motivo
         FROM sales_closed
@@ -306,7 +329,25 @@ def fetch_closed_sales():
     rows = cursor.fetchall()
     conn.close()
 
-    return [dict(row) for row in rows]
+    return [dict(r) for r in rows]
+
+def fetch_closed_sale_adjustments(closed_sale_id):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT * FROM closed_sale_adjustments
+        WHERE closed_sale_id = ?
+        ORDER BY created_at ASC
+        """,
+        (closed_sale_id,)
+    )
+
+    rows = cur.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
 
 # ---------------- ARCHIVE ----------------
 def archive_sale(sale_id):
@@ -323,8 +364,8 @@ def archive_sale(sale_id):
         """
         INSERT INTO sales_archive (
             id, cliente, aparelho, valor_entrada,
-            tipo_venda, valor_total, data_venda, created_at, archived_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            tipo_venda, valor_total, data_venda, frequencia_pagamento, created_at, archived_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sale["id"],
@@ -334,6 +375,7 @@ def archive_sale(sale_id):
             sale["tipo_venda"],
             sale["valor_total"],
             sale["data_venda"],
+            sale["frequencia_pagamento"],
             sale["created_at"],
             datetime.utcnow().isoformat(),
         )
@@ -374,76 +416,118 @@ def close_sale_critical(sale_id: str, motivo: str):
     conn = get_connection()
     cur = conn.cursor()
 
-    # ---------------- VENDA ----------------
-    cur.execute("SELECT * FROM sales WHERE id = ?", (sale_id,))
-    sale = cur.fetchone()
+    try:
+        # ---------------- VENDA ----------------
+        cur.execute("SELECT * FROM sales WHERE id = ?", (sale_id,))
+        sale = cur.fetchone()
 
-    if not sale:
-        conn.close()
-        raise ValueError("Venda não encontrada ou já encerrada.")
+        if not sale:
+            conn.close()
+            raise ValueError("Venda não encontrada ou já encerrada.")
 
-    # ---------------- PARCELAS ----------------
-    cur.execute(
-        "SELECT id, valor_original FROM parcels WHERE sale_id = ?",
-        (sale_id,)
-    )
-    parcels = cur.fetchall()
-
-    parcel_ids = [p["id"] for p in parcels]
-
-    # ---------------- PAGAMENTOS ----------------
-    if parcel_ids:
-        placeholders = ",".join("?" for _ in parcel_ids)
+        # ---------------- PARCELAS ----------------
         cur.execute(
-            f"""
-            SELECT SUM(valor) as total_pago
-            FROM parcel_adjustments
-            WHERE tipo = 'pagamento'
-              AND parcel_id IN ({placeholders})
-            """,
-            parcel_ids
+            "SELECT id, valor_original FROM parcels WHERE sale_id = ?",
+            (sale_id,)
         )
-        total_pago = cur.fetchone()["total_pago"] or 0.0
-    else:
+        parcels = cur.fetchall()
+
+        parcel_ids = [p["id"] for p in parcels]
+
+        # ---------------- PAGAMENTOS ----------------
         total_pago = 0.0
+        if parcel_ids:
+            placeholders = ",".join("?" for _ in parcel_ids)
+            cur.execute(
+                f"""
+                SELECT SUM(valor) as total_pago
+                FROM parcel_adjustments
+                WHERE tipo = 'pagamento'
+                  AND parcel_id IN ({placeholders})
+                """,
+                parcel_ids
+            )
+            result = cur.fetchone()
+            total_pago = result["total_pago"] or 0.0
 
-    # ---------------- VALORES ----------------
-    valor_total = sale["valor_total"]
-    valor_recebido = round(total_pago, 2)
-    valor_perdido = round(valor_total - valor_recebido, 2)
+        # ---------------- VALORES ----------------
+        valor_total = sale["valor_total"]
+        valor_recebido = round(total_pago, 2)
+        valor_perdido = round(valor_total - valor_recebido, 2)
 
-    # ---------------- INSERIR EM SALES_CLOSED ----------------
+        # ---------------- INSERIR EM SALES_CLOSED ----------------
+        cur.execute(
+            """
+            INSERT INTO sales_closed (
+                id, cliente, aparelho,
+                valor_total, valor_recebido, valor_perdido,
+                data_venda, frequencia_pagamento, created_at, closed_at, motivo
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                sale["id"],
+                sale["cliente"],
+                sale["aparelho"],
+                valor_total,
+                valor_recebido,
+                valor_perdido,
+                sale["data_venda"],
+                sale["frequencia_pagamento"],
+                sale["created_at"],
+                datetime.utcnow().isoformat(),
+                motivo,
+            )
+        )
+
+        # ---------------- LIMPEZA OPERACIONAL ----------------
+        # Primeiro remove os ajustes das parcelas
+        if parcel_ids:
+            placeholders = ",".join("?" for _ in parcel_ids)
+            cur.execute(
+                f"DELETE FROM parcel_adjustments WHERE parcel_id IN ({placeholders})",
+                parcel_ids
+            )
+
+        # Depois remove as parcelas
+        cur.execute("DELETE FROM parcels WHERE sale_id = ?", (sale_id,))
+        
+        # Finalmente remove a venda
+        cur.execute("DELETE FROM sales WHERE id = ?", (sale_id,))
+
+        conn.commit()
+        # st.success("Venda encerrada por exceção com sucesso.")
+
+    except Exception as e:
+        conn.rollback()
+        # st.error(f"Erro ao encerrar venda: {str(e)}")
+        raise e
+    finally:
+        conn.close()
+
+# ---------------- UPDATE CLOSED SALE RECOVERY ----------------
+def update_closed_sale_recovery(sale_id, valor):
+    conn = get_connection()
+    cur = conn.cursor()
+
     cur.execute(
         """
-        INSERT INTO sales_closed (
-            id, cliente, aparelho,
-            valor_total, valor_recebido, valor_perdido,
-            data_venda, created_at, closed_at, motivo
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        UPDATE sales_closed
+        SET valor_recuperado = valor_recuperado + ?
+        WHERE id = ?
         """,
-        (
-            sale["id"],
-            sale["cliente"],
-            sale["aparelho"],
-            valor_total,
-            valor_recebido,
-            valor_perdido,
-            sale["data_venda"],
-            sale["created_at"],
-            datetime.utcnow().isoformat(),
-            motivo,
-        )
+        (valor, sale_id)
     )
 
-    # ---------------- LIMPEZA OPERACIONAL ----------------
+#--- development utility function ---
+def delete_closed_sale(cliente):
+    conn = get_connection()
+    cur = conn.cursor()
+
     cur.execute(
-        "DELETE FROM parcel_adjustments WHERE parcel_id IN (SELECT id FROM parcels WHERE sale_id = ?)",
-        (sale_id,)
+        "DELETE FROM sales_closed WHERE cliente = ?",
+        (cliente,)
     )
-    cur.execute("DELETE FROM parcels WHERE sale_id = ?", (sale_id,))
-    cur.execute("DELETE FROM sales WHERE id = ?", (sale_id,))
 
     conn.commit()
     conn.close()
-

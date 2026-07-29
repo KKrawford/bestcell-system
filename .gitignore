@@ -1,20 +1,17 @@
-# Ambiente virtual
+# Ambiente e cache Python
 .venv/
-
-# Python
 __pycache__/
-*.pyc
+*.py[cod]
 
-# Banco de dados
+# Dados locais e backups
 *.db
+*.sqlite
+*.sqlite3
+*_backup_*.db
+Laudos/
 
-# IDEs
+# IDE e sistema operacional
 .vscode/
 .idea/
-
-# Sistema operacional
 .DS_Store
 Thumbs.db
-
-# Runtime (somente execução)
-runtime/
