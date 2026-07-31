@@ -50,6 +50,29 @@ Essa escolha é aplicada ao criar a venda e define as datas de vencimento de tod
 
 Os relatórios e as informações de saúde do sistema, antes exibidos na navegação da v1.0, foram realocados para dentro do módulo de Vendas. A mudança preserva o acesso às informações financeiras e libera a barra lateral principal para o menu de navegação entre os módulos da v2.0.
 
+### Ordens de Serviço
+
+O módulo de **Ordens de Serviço** controla os aparelhos recebidos na loja para reparo, desde o cadastro até a conclusão ou o cancelamento do atendimento.
+
+#### Fluxo de atendimento
+
+Cada cadastro gera um card de OS em um quadro Kanban. O acompanhamento segue o fluxo **Recebido → Em análise → Em reparo → Pronto**, registrando as datas de cada avanço para manter o histórico do atendimento.
+
+#### Informações e senha do aparelho
+
+A OS permite editar as informações do aparelho e do cliente, o serviço executado, observações e a senha de desbloqueio. Para aparelhos Android com padrão de tela, o módulo inclui um **pattern lock** que simula a grade 3×3 do sistema Android e permite registrar o padrão de forma visual.
+
+#### Atendimento, comunicação e consulta
+
+- Geração de PDF da ordem de serviço.
+- Geração de mensagem para comunicação via WhatsApp.
+- Busca de ordens de serviço ativas e arquivadas.
+- Edição das informações ao longo do atendimento.
+
+#### Métricas e arquivamento
+
+O módulo apresenta métricas e relatórios financeiros e operacionais. Ao concluir ou cancelar um atendimento, a OS é arquivada em uma tabela própria, preservando o histórico sem misturá-lo às ordens em andamento.
+
 ## Foco no negócio
 
 O BestCell System não foi pensado como um ERP genérico. Cada módulo foi desenvolvido para a rotina real de uma loja e assistência técnica de celulares, priorizando fluxos simples, objetivos e coerentes com a operação do negócio.
