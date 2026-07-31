@@ -73,6 +73,26 @@ A OS permite editar as informações do aparelho e do cliente, o serviço execut
 
 O módulo apresenta métricas e relatórios financeiros e operacionais. Ao concluir ou cancelar um atendimento, a OS é arquivada em uma tabela própria, preservando o histórico sem misturá-lo às ordens em andamento.
 
+### Estoque
+
+O módulo de **Estoque** acompanha o estoque físico da loja com uma lógica voltada à reposição e ao reaproveitamento de componentes. Ele não reproduz um sistema de estoque convencional: não controla preço, fornecedor ou custos, pois capas e películas possuem preço de venda unificado. O foco é identificar quantidades disponíveis, necessidades de reposição e peças que podem ser usadas em reparos.
+
+#### Peças
+
+Registra peças e componentes de celulares disponíveis para reaproveitamento em reparos. Esses itens não são repostos por compra: são retirados de aparelhos ou carcaças sem conserto, ou cujo reparo não compensa o custo. O módulo permite consultar a disponibilidade antes de iniciar um novo serviço técnico.
+
+#### Capas
+
+Controla a disponibilidade de capas por modelo e cor. Além de identificar os modelos zerados que precisam ser repostos, o módulo mostra quais cores permanecem em estoque, ajudando a evitar a compra repetida de cores e a manter opções variadas para os clientes.
+
+#### Películas
+
+Controla a quantidade disponível por modelo e considera a compatibilidade entre aparelhos. Para indicar a reposição, o estoque mínimo leva em conta tanto as películas cadastradas para o modelo quanto as quantidades dos modelos compatíveis. Dessa forma, a necessidade de reposição reflete a disponibilidade real de películas que podem atender ao aparelho.
+
+#### Dashboard
+
+O dashboard consolida essas informações para apoiar a operação diária: disponibilidade de peças para reparo, modelos de capas sem estoque e níveis de películas que exigem atenção na reposição.
+
 ## Foco no negócio
 
 O BestCell System não foi pensado como um ERP genérico. Cada módulo foi desenvolvido para a rotina real de uma loja e assistência técnica de celulares, priorizando fluxos simples, objetivos e coerentes com a operação do negócio.
