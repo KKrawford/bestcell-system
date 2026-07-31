@@ -28,7 +28,27 @@ Os módulos compartilham o mesmo banco SQLite, mas cada um manipula exclusivamen
 - **Estoque:** novo módulo para o controle de itens utilizados na operação da loja.
 - **Catálogo:** novo módulo para consulta de produtos e apoio à comercialização.
 
-Os detalhes funcionais de cada módulo serão documentados em seções próprias.
+## Funcionalidades dos módulos
+
+### Vendas
+
+O módulo de **Vendas** preserva as funcionalidades que compunham integralmente a v1.0: cadastro de vendas de aparelhos, controle de parcelamentos e relatórios financeiros. Com a arquitetura modular, ele passou a operar como uma área independente dentro do sistema.
+
+#### Frequência de pagamentos
+
+Nas vendas parceladas da v1.0, as datas das parcelas eram sempre geradas com intervalo de 30 dias a partir da data da venda, caracterizando pagamentos mensais.
+
+Na v2.0, foi incluído o campo **Frequência de Pagamentos**, que permite escolher o intervalo de vencimento das parcelas:
+
+- **Mensal:** parcelas a cada 30 dias.
+- **Quinzenal:** parcelas a cada 15 dias.
+- **Semanal:** parcelas a cada 7 dias.
+
+Essa escolha é aplicada ao criar a venda e define as datas de vencimento de todas as parcelas geradas.
+
+#### Relatórios e saúde do sistema
+
+Os relatórios e as informações de saúde do sistema, antes exibidos na navegação da v1.0, foram realocados para dentro do módulo de Vendas. A mudança preserva o acesso às informações financeiras e libera a barra lateral principal para o menu de navegação entre os módulos da v2.0.
 
 ## Foco no negócio
 
