@@ -93,6 +93,23 @@ Controla a quantidade disponível por modelo e considera a compatibilidade entre
 
 O dashboard consolida essas informações para apoiar a operação diária: disponibilidade de peças para reparo, modelos de capas sem estoque e níveis de películas que exigem atenção na reposição.
 
+### Catálogo
+
+O módulo de **Catálogo** é uma ferramenta de apoio ao atendimento no balcão. Ele reúne os preços e as características dos produtos vendidos pela loja, funcionando como tabela comercial e como conjunto de calculadoras para a negociação.
+
+#### Cadastro de produtos
+
+Cada categoria possui um CRUD independente, com os campos relevantes para sua venda:
+
+- **iPhones:** modelo, armazenamento, cor, condição da bateria, disponibilidade e preço.
+- **Androids:** marca, modelo, memória RAM, armazenamento, estado e preço.
+- **Perfumes e PODs:** cadastro com os atributos específicos de cada categoria.
+
+#### Simuladores e calculadoras
+
+- **Simulador de venda:** calcula entrada, juros e parcelamento para apoiar a negociação com o cliente.
+- **Calculadora de atraso:** calcula o valor de atraso com multa fixa de **R$ 3,90 por dia**.
+
 ## Foco no negócio
 
 O BestCell System não foi pensado como um ERP genérico. Cada módulo foi desenvolvido para a rotina real de uma loja e assistência técnica de celulares, priorizando fluxos simples, objetivos e coerentes com a operação do negócio.
